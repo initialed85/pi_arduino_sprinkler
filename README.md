@@ -6,7 +6,7 @@ to talk to the pumps.
 If we take my use case as an example- I had an old and broken sprinkler controller but (as I discovered when everything
 malfunctioned one day) the 24VAC transformer and the pumps all seem to still work.
 
-So I intend to use a 24VAC rectifier with two 5V regulators (thanks young kid at Altronics) to power both the Raspberry
+I intend to use a 24VAC rectifier with two 5V regulators (thanks young kid at Altronics) to power both the Raspberry
 Pi and the Arduino from the same 24VAC that will be switched through to the pumps via some relays.
 
 Here in Perth, you're only allowed to water on certain days at certain hours, so it's important for this system to
@@ -40,7 +40,7 @@ or is due to rain
     * virtualenvwrapper
         * ```pip install virtualenvwrapper```
     
-### How to setup (hardware)
+### How to setup for testing (hardware)
 
 * with the Arduino powered off
     * connect the relay board to the Arduino in the following way (relay board left, Arduino right)
@@ -64,7 +64,7 @@ or is due to rain
 
 At this point the Arduino should be proven, so unplug it from your computer and plug it into the Pi.
 
-### How to setup (software)
+### How to setup for testing (software)
 
 These steps will assume you're on a Raspberry Pi running Raspbian Lite as the "pi" user.
 
@@ -80,7 +80,7 @@ These steps will assume you're on a Raspberry Pi running Raspbian Lite as the "p
     * ```python -m pi_sprinklers.arduino_timeout_relays```
         * after some setup time, all four relays should click on
         * the Python script should quit
-        * after 30 seconds, all four relays should turn off        
+        * after 30 seconds, all four relays should turn off
 <!---
 * install the supervisor config file
     * ```sudo cp pi_arduino_sprinkler.conf /etc/supervisor/conf.d/```
