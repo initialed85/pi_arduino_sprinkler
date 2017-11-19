@@ -46,7 +46,12 @@ class ArduinoTimeoutRelaysTest(unittest.TestCase):
             equal_to(True)
         )
 
+    def test_empty_buffer(self):
+        self._subject._serial.in_waiting = 0
+        self._subject._empty_buffer()
+
     def test_relay_on(self):
+        self._subject._empty_buffer = MagicMock()
         self._subject._serial.readline.return_value = 'INFO: requesting relay 1 change to state on'
 
         assert_that(
@@ -55,6 +60,7 @@ class ArduinoTimeoutRelaysTest(unittest.TestCase):
         )
 
     def test_relay_off(self):
+        self._subject._empty_buffer = MagicMock()
         self._subject._serial.readline.return_value = 'INFO: requesting relay 1 change to state off'
 
         assert_that(
