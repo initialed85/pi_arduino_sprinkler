@@ -185,8 +185,4 @@ if __name__ == '__main__':
         a.relay_on(i)
         time.sleep(1)
 
-    time.sleep(10)
-
-    a.relay_on(1)
-
     a.close()
