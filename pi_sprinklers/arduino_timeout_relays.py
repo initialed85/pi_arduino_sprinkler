@@ -49,10 +49,25 @@ class ArduinoTimeoutRelays(Thread):
         self._stopped = True
         self.join()
 
+    def _empty_buffer(self):
+        self._logger.debug('{0}()'.format(
+            inspect.currentframe().f_code.co_name
+        ))
+
+        data = ''
+        while self._serial.in_waiting > 0:
+            data += self._serial.read(1)
+
+        self._logger.debug('{0}(); data={1}'.format(
+            inspect.currentframe().f_code.co_name, repr(data)
+        ))
+
     def relay_on(self, relay):
         self._logger.debug('{0}()'.format(
             inspect.currentframe().f_code.co_name
         ))
+
+        self._empty_buffer()
 
         self._serial.write('{0},on\n'.format(relay))
         data = self._serial.readline().strip()
@@ -73,6 +88,8 @@ class ArduinoTimeoutRelays(Thread):
         self._logger.debug('{0}()'.format(
             inspect.currentframe().f_code.co_name
         ))
+
+        self._empty_buffer()
 
         self._serial.write('{0},off\n'.format(relay))
         data = self._serial.readline().strip()
@@ -168,10 +185,8 @@ if __name__ == '__main__':
         a.relay_on(i)
         time.sleep(1)
 
-    while 1:
-        try:
-            time.sleep(1)
-        except KeyboardInterrupt:
-            break
+    time.sleep(10)
+
+    a.relay_on(1)
 
     a.close()

@@ -1,3 +1,5 @@
+int loopCounter = 100;
+
 const int numRelays = 4;
 const int relayTimeout = 30;
 
@@ -5,8 +7,6 @@ int relayPins[numRelays] = {2, 3, 4, 5};
 int relayNumbers[numRelays] = {1, 2, 3, 4};
 int relayStates[numRelays] = {0, 0, 0, 0};
 int relayCounters[numRelays] = {0, 0, 0, 0};
-
-int loopCounter = 100;
 
 void setup() {
   for (int i = 0; i < numRelays; i++ ) {
@@ -18,6 +18,17 @@ void setup() {
   Serial.begin(9600);
   Serial.setTimeout(10);
   Serial.println("DEBUG: setup() complete");
+}
+
+bool handleLoopCounter() {
+  if (loopCounter == 0) {
+    loopCounter = 100;
+    return true;
+  }
+
+  loopCounter--;
+
+  return false;
 }
 
 int getRelayPinFromIndex(int index) {
@@ -67,22 +78,11 @@ void handleRelayCounters() {
     if (*relayCounter > 0) {
       *relayCounter = *relayCounter - 1;
     } else if (setRelayState(i, 0)) {
-      // Serial.print("INFO: requesting relay ");
-      // Serial.print(getRelayNumberFromIndex(i));
-      // Serial.println(" change to state off (due to timeout)");
+       Serial.print("INFO: requesting relay ");
+       Serial.print(getRelayNumberFromIndex(i));
+       Serial.println(" change to state off (due to timeout)");
     }
   }
-}
-
-bool handleLoopCounter() {
-  if (loopCounter == 0) {
-    loopCounter = 100;
-    return true;
-  }
-
-  loopCounter--;
-
-  return false;
 }
 
 void handleSerialRead() {
