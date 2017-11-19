@@ -1,7 +1,7 @@
 import inspect
+import logging
 import time
 from Queue import Queue
-from logging import getLogger
 from threading import Thread
 
 import serial
@@ -28,36 +28,68 @@ class ArduinoTimeoutRelays(Thread):
         self._stopped = None
         self._start_queue = Queue()
 
-        self._logger = getLogger(self.__class__.__name__)
+        self._logger = logging.getLogger(self.__class__.__name__)
         self._logger.debug('{0}(); port={1}'.format(
             inspect.currentframe().f_code.co_name, self._port
         ))
 
     def open(self):
+        self._logger.debug('{0}()'.format(
+            inspect.currentframe().f_code.co_name
+        ))
+
         self.start()
         self._start_queue.get()
 
     def close(self):
+        self._logger.debug('{0}()'.format(
+            inspect.currentframe().f_code.co_name
+        ))
+
         self._stopped = True
         self.join()
 
     def relay_on(self, relay):
+        self._logger.debug('{0}()'.format(
+            inspect.currentframe().f_code.co_name
+        ))
+
         self._serial.write('{0},on\n'.format(relay))
         data = self._serial.readline().strip()
+
+        self._logger.debug('{0}(); data={1}'.format(
+            inspect.currentframe().f_code.co_name, repr(data)
+        ))
+
         if not data.startswith('INFO: '):
+            self._logger.critical('{0}(); Arduino did not respond with expected response'.format(
+                inspect.currentframe().f_code.co_name,
+            ))
             raise ArduinoTimeoutRelaysCommandError('relay_on failed; Arduino said: {0}'.format(repr(data.strip())))
 
         return True
 
     def relay_off(self, relay):
+        self._logger.debug('{0}()'.format(
+            inspect.currentframe().f_code.co_name
+        ))
+
         self._serial.write('{0},off\n'.format(relay))
         data = self._serial.readline().strip()
+
         if not data.startswith('INFO: '):
+            self._logger.critical('{0}(); Arduino did not respond with expected response'.format(
+                inspect.currentframe().f_code.co_name,
+            ))
             raise ArduinoTimeoutRelaysCommandError('relay_off failed; Arduino said: {0}'.format(repr(data.strip())))
 
         return True
 
     def _init(self):
+        self._logger.debug('{0}()'.format(
+            inspect.currentframe().f_code.co_name
+        ))
+
         self._serial = serial.Serial()
 
         self._serial.port = self._port
@@ -79,13 +111,22 @@ class ArduinoTimeoutRelays(Thread):
 
         try:
             data = self._serial.readline()
+            self._logger.critical('{0}(); data={1}'.format(
+                inspect.currentframe().f_code.co_name, repr(data)
+            ))
             if data.strip() != INIT_STRING:
+                self._logger.critical('{0}(); Arduino did not respond with expected response'.format(
+                    inspect.currentframe().f_code.co_name,
+                ))
                 raise ArduinoTimeoutRelaysInitError(
                     'expected {0} during init, got {1}'.format(
                         repr(INIT_STRING), repr(data)
                     )
                 )
         except Exception:
+            self._logger.critical('{0}(); Arduino did not respond before timeout'.format(
+                inspect.currentframe().f_code.co_name,
+            ))
             raise ArduinoTimeoutRelaysInitError('timed out waiting for {0}'.format(
                 repr(INIT_STRING)
             ))
@@ -107,6 +148,14 @@ class ArduinoTimeoutRelays(Thread):
 if __name__ == '__main__':
     import sys
 
+    handler = logging.StreamHandler()
+    handler.setFormatter(
+        logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    )
+    logger = logging.getLogger(ArduinoTimeoutRelays.__name__)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
+
     try:
         port = sys.argv[1]
     except:
@@ -118,5 +167,11 @@ if __name__ == '__main__':
     for i in range(1, 5):
         a.relay_on(i)
         time.sleep(1)
+
+    while 1:
+        try:
+            time.sleep(1)
+        except KeyboardInterrupt:
+            break
 
     a.close()

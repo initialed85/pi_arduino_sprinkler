@@ -21,10 +21,10 @@ or is due to rain
 ## Prequisites (hardware)
 
 * 1 x [Raspberry Pi](https://www.raspberrypi.org/); I've used a Pi 3
-* 1 x [Arduino](https://www.arduino.cc/); I've used an Uno clone
-* 1 x 4 channel 5VDC relay board; I've used the [Z6237 from Altronics](http://www.altronics.com.au/p/z6327-4-channel-5v-relay-control-board/)
-* 1 x 400V 4A bridge rectifier; I've used the [KBL404 from Altronics](http://www.altronics.com.au/p/z0076-kbl404-400v-4a-plastic-bridge-rectifier/)
-* 2 x 5V 1A regulators; I've used the [Z0505 from Altronics](http://www.altronics.com.au/p/z0505-7805-5v-1-amp-to-220-fixed-voltage-regulator/)
+* 1 x [Arduino](https://www.arduino.cc/); I've used part [Z6240 from Altronics](http://www.altronics.com.au/p/z6240-funduino-uno-r3-compatible-development-board/)
+* 1 x 4 channel 5VDC relay board; I've used part [Z6237 from Altronics](http://www.altronics.com.au/p/z6327-4-channel-5v-relay-control-board/)
+* 1 x 400V 4A bridge rectifier; I've used part [KBL404 from Altronics](http://www.altronics.com.au/p/z0076-kbl404-400v-4a-plastic-bridge-rectifier/)
+* 2 x 5V 1A regulators; I've used part [Z0505 from Altronics](http://www.altronics.com.au/p/z0505-7805-5v-1-amp-to-220-fixed-voltage-regulator/)
 * 6 x male-to-female jumper leads
 * USB-A to USB-B cable (normally provided with an Arduino)
 

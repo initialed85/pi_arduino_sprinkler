@@ -1,5 +1,5 @@
 const int numRelays = 4;
-const int relayTimeout = 30;
+const int relayTimeout = 5;
 
 int relayPins[numRelays] = {2, 3, 4, 5};
 int relayNumbers[numRelays] = {1, 2, 3, 4};
@@ -64,10 +64,6 @@ void handleRelayCounters() {
 
     if (*relayCounter > 0) {
       *relayCounter = *relayCounter - 1;
-    } else if (setRelayState(i, 0)) {
-      Serial.print("INFO: requesting relay ");
-      Serial.print(getRelayNumberFromIndex(i));
-      Serial.println(" change to state off (due to timeout)");
     }
   }
 }
