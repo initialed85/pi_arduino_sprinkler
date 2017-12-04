@@ -218,6 +218,9 @@ class StatefulArduinoTimeoutRelays(Thread):
 
         self._relays_on[relay] = False
 
+    def stop(self):
+        self._stopped = True
+
     def run(self, test_mode=False):
         self._arduino_timeout_relays.open()
 
