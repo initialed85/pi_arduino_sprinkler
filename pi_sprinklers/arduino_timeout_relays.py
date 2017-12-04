@@ -1,7 +1,7 @@
 import inspect
 import logging
 import time
-from Queue import Queue
+from Queue import Queue, Empty
 from threading import Thread
 
 import serial
@@ -63,8 +63,8 @@ class ArduinoTimeoutRelays(Thread):
         ))
 
     def relay_on(self, relay):
-        self._logger.debug('{0}()'.format(
-            inspect.currentframe().f_code.co_name
+        self._logger.debug('{0}(); relay={1}'.format(
+            inspect.currentframe().f_code.co_name, relay
         ))
 
         self._empty_buffer()
@@ -72,8 +72,8 @@ class ArduinoTimeoutRelays(Thread):
         self._serial.write('{0},on\n'.format(relay))
         data = self._serial.readline().strip()
 
-        self._logger.debug('{0}(); data={1}'.format(
-            inspect.currentframe().f_code.co_name, repr(data)
+        self._logger.debug('{0}(); relay={1}, data={2}'.format(
+            inspect.currentframe().f_code.co_name, relay, repr(data)
         ))
 
         if not data.startswith('INFO: '):
@@ -85,14 +85,18 @@ class ArduinoTimeoutRelays(Thread):
         return True
 
     def relay_off(self, relay):
-        self._logger.debug('{0}()'.format(
-            inspect.currentframe().f_code.co_name
+        self._logger.debug('{0}(); relay={1}'.format(
+            inspect.currentframe().f_code.co_name, relay
         ))
 
         self._empty_buffer()
 
         self._serial.write('{0},off\n'.format(relay))
         data = self._serial.readline().strip()
+
+        self._logger.debug('{0}(); relay={1}, data={2}'.format(
+            inspect.currentframe().f_code.co_name, relay, repr(data)
+        ))
 
         if not data.startswith('INFO: '):
             self._logger.critical('{0}(); Arduino did not respond with expected response'.format(
@@ -160,6 +164,80 @@ class ArduinoTimeoutRelays(Thread):
 
             if test_mode:
                 break
+
+
+class StatefulArduinoTimeoutRelays(Thread):
+    def __init__(self, port, num_relays=4):
+        super(StatefulArduinoTimeoutRelays, self).__init__()
+
+        self._port = port
+        self._num_relays = num_relays
+
+        self._arduino_timeout_relays = ArduinoTimeoutRelays(
+            port=self._port,
+        )
+
+        self._relays_on = {
+            i: False for i in range(1, num_relays + 1)
+        }
+        self._wait_queue = Queue()
+        self._stopped = False
+
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self._logger.debug('{0}(); port={1}, num_relays={2}'.format(
+            inspect.currentframe().f_code.co_name, self._port, self._num_relays
+        ))
+
+    def relay_on(self, relay):
+        self._logger.debug('{0}(); relay={1}'.format(
+            inspect.currentframe().f_code.co_name, relay
+        ))
+
+        if relay not in self._relays_on:
+            message = 'relay number {0} not one of {1}'.format(
+                relay, self._relays_on.keys()
+            )
+            self._logger.error(message)
+            raise ValueError(message)
+
+        self._relays_on[relay] = True
+
+    def relay_off(self, relay):
+        self._logger.debug('{0}(); relay={1}'.format(
+            inspect.currentframe().f_code.co_name, relay
+        ))
+
+        if relay not in self._relays_on:
+            message = 'relay number {0} not one of {1}'.format(
+                relay, self._relays_on.keys()
+            )
+            self._logger.error(message)
+            raise ValueError(message)
+
+        self._arduino_timeout_relays.relay_off(1)
+
+        self._relays_on[relay] = False
+
+    def run(self, test_mode=False):
+        self._arduino_timeout_relays.open()
+
+        on = self._arduino_timeout_relays.relay_on
+        off = self._arduino_timeout_relays.relay_off
+
+        while not self._stopped:
+            for relay, relay_on in sorted(self._relays_on.items()):
+                on(relay) if relay_on else off(relay)
+                time.sleep(0.1)
+
+            if test_mode:
+                break
+
+            try:
+                self._wait_queue.get(timeout=5)
+            except Empty:
+                pass
+
+        self._arduino_timeout_relays.close()
 
 
 if __name__ == '__main__':

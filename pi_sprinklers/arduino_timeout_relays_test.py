@@ -3,13 +3,13 @@ import unittest
 from hamcrest import equal_to, assert_that
 from mock import patch, MagicMock, call
 
-from pi_sprinklers.arduino_timeout_relays import ArduinoTimeoutRelays
+from pi_sprinklers.arduino_timeout_relays import ArduinoTimeoutRelays, StatefulArduinoTimeoutRelays
 
 
 class ArduinoTimeoutRelaysTest(unittest.TestCase):
     def setUp(self):
         self._subject = ArduinoTimeoutRelays(
-            '/dev/ttyUSB999'
+            port='/dev/ttyUSB999'
         )
 
         self._subject._serial = MagicMock()
@@ -85,5 +85,82 @@ class ArduinoTimeoutRelaysTest(unittest.TestCase):
             sleep.mock_calls,
             equal_to([
                 call(1)
+            ])
+        )
+
+
+class StatefulArduinoTimeoutRelaysTest(unittest.TestCase):
+
+    @patch('pi_sprinklers.arduino_timeout_relays.ArduinoTimeoutRelays')
+    def setUp(self, arduino_timeout_relays):
+        self._subject = StatefulArduinoTimeoutRelays(
+            port='/dev/ttyUSB999',
+            num_relays=2,
+        )
+
+        assert_that(
+            arduino_timeout_relays.mock_calls,
+            equal_to([
+                call(port='/dev/ttyUSB999')
+            ])
+        )
+
+    def test_relay_on(self):
+        self._subject.relay_on(1)
+
+        assert_that(
+            self._subject._relays_on,
+            equal_to({1: True, 2: False})
+        )
+
+    def test_relay_off(self):
+        self._subject.relay_off(1)
+
+        assert_that(
+            self._subject._relays_on,
+            equal_to({1: False, 2: False})
+        )
+
+    def test_run_no_relays_on(self):
+        self._subject.run(test_mode=True)
+
+        assert_that(
+            self._subject._arduino_timeout_relays.mock_calls,
+            equal_to([
+                call.open(),
+                call.relay_off(1),
+                call.relay_off(2),
+                call.close()
+            ])
+        )
+
+    def test_run_one_relay_on(self):
+        self._subject.relay_on(1)
+
+        self._subject.run(test_mode=True)
+
+        assert_that(
+            self._subject._arduino_timeout_relays.mock_calls,
+            equal_to([
+                call.open(),
+                call.relay_on(1),
+                call.relay_off(2),
+                call.close()
+            ])
+        )
+
+    def test_run_two_relays_on(self):
+        self._subject.relay_on(1)
+        self._subject.relay_on(2)
+
+        self._subject.run(test_mode=True)
+
+        assert_that(
+            self._subject._arduino_timeout_relays.mock_calls,
+            equal_to([
+                call.open(),
+                call.relay_on(1),
+                call.relay_on(2),
+                call.close()
             ])
         )
