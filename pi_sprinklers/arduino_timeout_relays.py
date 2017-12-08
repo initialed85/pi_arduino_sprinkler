@@ -41,6 +41,9 @@ class ArduinoTimeoutRelays(Thread):
         self.start()
         self._start_queue.get()
 
+    def __enter__(self):
+        self.open()
+
     def close(self):
         self._logger.debug('{0}()'.format(
             inspect.currentframe().f_code.co_name
@@ -48,6 +51,9 @@ class ArduinoTimeoutRelays(Thread):
 
         self._stopped = True
         self.join()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
     def _empty_buffer(self):
         self._logger.debug('{0}()'.format(
@@ -218,33 +224,42 @@ class StatefulArduinoTimeoutRelays(Thread):
 
         self._relays_on[relay] = False
 
-    def stop(self):
+    def open(self):
+        self.start()
+
+    def __enter__(self):
+        self.open()
+
+    def close(self):
         self._stopped = True
+        self.join()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
     def run(self, test_mode=False):
-        self._arduino_timeout_relays.open()
-
         on = self._arduino_timeout_relays.relay_on
         off = self._arduino_timeout_relays.relay_off
 
-        while not self._stopped:
-            for relay, relay_on in sorted(self._relays_on.items()):
-                on(relay) if relay_on else off(relay)
-                time.sleep(0.1)
+        with self._arduino_timeout_relays:
 
-            if test_mode:
-                break
+            while not self._stopped:
+                for relay, relay_on in sorted(self._relays_on.items()):
+                    on(relay) if relay_on else off(relay)
+                    time.sleep(0.1)
 
-            try:
-                self._wait_queue.get(timeout=5)
-            except Empty:
-                pass
+                if test_mode:
+                    break
 
-        self._arduino_timeout_relays.close()
+                try:
+                    self._wait_queue.get(timeout=5)
+                except Empty:
+                    pass
 
 
 if __name__ == '__main__':
-    import sys
+    import argparse
+    import os
 
     handler = logging.StreamHandler()
     handler.setFormatter(
@@ -254,16 +269,68 @@ if __name__ == '__main__':
     logger.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
-    try:
-        port = sys.argv[1]
-    except:
-        port = '/dev/ttyACM0'
+    parser = argparse.ArgumentParser(
+        description='Arduino Timeout Relays - {0}'.format(
+            os.path.split(__file__)[1],
+        ),
+    )
 
-    a = ArduinoTimeoutRelays(port)
-    a.open()
+    parser.add_argument(
+        '-p',
+        '--port',
+        type=str,
+        default='/dev/ttyACM0',
+        help='serial port Arduino is connected to'
+    )
 
-    for i in range(1, 5):
-        a.relay_on(i)
-        time.sleep(1)
+    parser.add_argument(
+        '-n',
+        '--num-relays',
+        type=int,
+        default=4,
+        help='number of relays the Arduino is set up for'
+    )
 
-    a.close()
+    parser.add_argument(
+        '-r',
+        '--relays',
+        type=str,
+        action='append',
+        help='comma separated list of relay numbers (repeat per work to do)'
+    )
+
+    parser.add_argument(
+        '-d',
+        '--duration',
+        type=int,
+        action='append',
+        help='number of minutes to run the preceding relays (repeat per work to do)'
+    )
+
+    args = parser.parse_args()
+
+    stateful_arduino_timeout_relays = StatefulArduinoTimeoutRelays(
+        port=args.port,
+        num_relays=args.num_relays,
+    )
+
+    with stateful_arduino_timeout_relays:
+
+        work = []
+
+        for relays, duration in zip(args.relays, args.duration):
+            work += (
+                sorted([int(x.strip()) for x in relays.split(',')]), duration * 60
+            )
+
+        for relays, duration in work:
+
+            # 1 = pump, turn it on last
+            for relay in relays[::-1]:
+                stateful_arduino_timeout_relays.relay_on(relay)
+
+            time.sleep(duration)
+
+            # 1 = pump, turn it off first
+            for relay in relays:
+                stateful_arduino_timeout_relays.relay_off(relay)
