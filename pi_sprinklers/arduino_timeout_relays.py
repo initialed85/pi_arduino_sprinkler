@@ -295,6 +295,7 @@ if __name__ == '__main__':
         '-r',
         '--relays',
         type=str,
+        required=True,
         action='append',
         help='comma separated list of relay numbers (repeat per work to do)'
     )
@@ -303,6 +304,7 @@ if __name__ == '__main__':
         '-d',
         '--duration',
         type=int,
+        required=True,
         action='append',
         help='number of minutes to run the preceding relays (repeat per work to do)'
     )

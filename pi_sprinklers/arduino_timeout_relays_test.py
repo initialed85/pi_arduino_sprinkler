@@ -127,10 +127,10 @@ class StatefulArduinoTimeoutRelaysTest(unittest.TestCase):
         assert_that(
             self._subject._arduino_timeout_relays.mock_calls,
             equal_to([
-                call.open(),
+                call.__enter__(),
                 call.relay_off(1),
                 call.relay_off(2),
-                call.close()
+                call.__exit__(None, None, None)
             ])
         )
 
@@ -142,10 +142,10 @@ class StatefulArduinoTimeoutRelaysTest(unittest.TestCase):
         assert_that(
             self._subject._arduino_timeout_relays.mock_calls,
             equal_to([
-                call.open(),
+                call.__enter__(),
                 call.relay_on(1),
                 call.relay_off(2),
-                call.close()
+                call.__exit__(None, None, None)
             ])
         )
 
@@ -158,9 +158,9 @@ class StatefulArduinoTimeoutRelaysTest(unittest.TestCase):
         assert_that(
             self._subject._arduino_timeout_relays.mock_calls,
             equal_to([
-                call.open(),
+                call.__enter__(),
                 call.relay_on(1),
                 call.relay_on(2),
-                call.close()
+                call.__exit__(None, None, None)
             ])
         )
