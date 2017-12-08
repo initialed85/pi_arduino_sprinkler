@@ -321,18 +321,16 @@ if __name__ == '__main__':
         work = []
 
         for relays, duration in zip(args.relays, args.duration):
-            work += (
-                sorted([int(x.strip()) for x in relays.split(',')]), duration * 60
-            )
+            work += [
+                (sorted([int(x.strip()) for x in relays.split(',')]), duration * 60)
+            ]
 
         for relays, duration in work:
 
-            # 1 = pump, turn it on last
-            for relay in relays[::-1]:
+            for relay in relays:
                 stateful_arduino_timeout_relays.relay_on(relay)
 
             time.sleep(duration)
 
-            # 1 = pump, turn it off first
             for relay in relays:
                 stateful_arduino_timeout_relays.relay_off(relay)
