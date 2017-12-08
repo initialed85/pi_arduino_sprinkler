@@ -225,12 +225,20 @@ class StatefulArduinoTimeoutRelays(Thread):
         self._relays_on[relay] = False
 
     def open(self):
+        self._logger.debug('{0}()'.format(
+            inspect.currentframe().f_code.co_name,
+        ))
+
         self.start()
 
     def __enter__(self):
         self.open()
 
     def close(self):
+        self._logger.debug('{0}()'.format(
+            inspect.currentframe().f_code.co_name,
+        ))
+
         self._stopped = True
         self.join()
 
@@ -238,6 +246,10 @@ class StatefulArduinoTimeoutRelays(Thread):
         self.close()
 
     def run(self, test_mode=False):
+        self._logger.debug('{0}()'.format(
+            inspect.currentframe().f_code.co_name,
+        ))
+
         on = self._arduino_timeout_relays.relay_on
         off = self._arduino_timeout_relays.relay_off
 
@@ -265,9 +277,11 @@ if __name__ == '__main__':
     handler.setFormatter(
         logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     )
-    logger = logging.getLogger(ArduinoTimeoutRelays.__name__)
+    logger = logging.getLogger(StatefulArduinoTimeoutRelays.__name__)
     logger.setLevel(logging.DEBUG)
     logger.addHandler(handler)
+
+
 
     parser = argparse.ArgumentParser(
         description='Arduino Timeout Relays - {0}'.format(
