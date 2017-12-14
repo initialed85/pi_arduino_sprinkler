@@ -1,5 +1,6 @@
 import inspect
 import logging
+import logging.handlers
 import time
 from Queue import Queue, Empty
 from threading import Thread
@@ -268,20 +269,32 @@ class StatefulArduinoTimeoutRelays(Thread):
                 except Empty:
                     pass
 
+            for relay, _ in sorted(self._relays_on.items()):
+                off(relay)
+                time.sleep(0.1)
+
 
 if __name__ == '__main__':
     import argparse
     import os
 
-    handler = logging.StreamHandler()
-    handler.setFormatter(
-        logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    )
     logger = logging.getLogger(StatefulArduinoTimeoutRelays.__name__)
     logger.setLevel(logging.DEBUG)
-    logger.addHandler(handler)
 
+    handlers = [
+        logging.StreamHandler(),
+        logging.handlers.RotatingFileHandler(
+            '/tmp/pi_sprinklers_{0}'.format(StatefulArduinoTimeoutRelays.__name__),
+            maxBytes=16384,
+            backupCount=2,
+        )
+    ]
 
+    for handler in handlers:
+        handler.setFormatter(
+            logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        )
+        logger.addHandler(handler)
 
     parser = argparse.ArgumentParser(
         description='Arduino Timeout Relays - {0}'.format(
