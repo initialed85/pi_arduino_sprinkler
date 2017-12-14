@@ -343,21 +343,24 @@ if __name__ == '__main__':
         num_relays=args.num_relays,
     )
 
-    with stateful_arduino_timeout_relays:
+    try:
+        with stateful_arduino_timeout_relays:
 
-        work = []
+            work = []
 
-        for relays, duration in zip(args.relays, args.duration):
-            work += [
-                (sorted([int(x.strip()) for x in relays.split(',')]), duration * 60)
-            ]
+            for relays, duration in zip(args.relays, args.duration):
+                work += [
+                    (sorted([int(x.strip()) for x in relays.split(',')]), duration * 60)
+                ]
 
-        for relays, duration in work:
+            for relays, duration in work:
 
-            for relay in relays:
-                stateful_arduino_timeout_relays.relay_on(relay)
+                for relay in relays:
+                    stateful_arduino_timeout_relays.relay_on(relay)
 
-            time.sleep(duration)
+                time.sleep(duration)
 
-            for relay in relays:
-                stateful_arduino_timeout_relays.relay_off(relay)
+                for relay in relays:
+                    stateful_arduino_timeout_relays.relay_off(relay)
+    except KeyboardInterrupt:
+        pass
