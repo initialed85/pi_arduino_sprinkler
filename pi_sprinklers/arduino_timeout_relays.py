@@ -278,23 +278,27 @@ if __name__ == '__main__':
     import argparse
     import os
 
-    logger = logging.getLogger(StatefulArduinoTimeoutRelays.__name__)
-    logger.setLevel(logging.DEBUG)
-
-    handlers = [
-        logging.handlers.RotatingFileHandler(
-            '/tmp/pi_sprinklers_{0}.log'.format('ArduinoTimeoutRelays'),
-            maxBytes=16384,
-            backupCount=2,
+    loggers = [
+        (
+            logging.getLogger(StatefulArduinoTimeoutRelays.__name__),
+            logging.handlers.RotatingFileHandler(
+                '/tmp/pi_sprinklers_{0}.log'.format('ArduinoTimeoutRelays'),
+                maxBytes=16384,
+                backupCount=2,
+            )
         ),
-        logging.handlers.RotatingFileHandler(
-            '/tmp/pi_sprinklers_{0}.log'.format(StatefulArduinoTimeoutRelays.__name__),
-            maxBytes=16384,
-            backupCount=2,
+        (
+            logging.getLogger(StatefulArduinoTimeoutRelays.__name__),
+            logging.handlers.RotatingFileHandler(
+                '/tmp/pi_sprinklers_{0}.log'.format(StatefulArduinoTimeoutRelays.__name__),
+                maxBytes=16384,
+                backupCount=2,
+            )
         )
     ]
 
-    for handler in handlers:
+    for logger, handler in loggers:
+        logger.setLevel(logging.DEBUG)
         handler.setFormatter(
             logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         )
