@@ -130,6 +130,8 @@ class StatefulArduinoTimeoutRelaysTest(unittest.TestCase):
                 call.__enter__(),
                 call.relay_off(1),
                 call.relay_off(2),
+                call.relay_off(1),
+                call.relay_off(2),
                 call.__exit__(None, None, None)
             ])
         )
@@ -144,6 +146,8 @@ class StatefulArduinoTimeoutRelaysTest(unittest.TestCase):
             equal_to([
                 call.__enter__(),
                 call.relay_on(1),
+                call.relay_off(2),
+                call.relay_off(1),
                 call.relay_off(2),
                 call.__exit__(None, None, None)
             ])
@@ -161,6 +165,8 @@ class StatefulArduinoTimeoutRelaysTest(unittest.TestCase):
                 call.__enter__(),
                 call.relay_on(1),
                 call.relay_on(2),
-                call.__exit__(None, None, None)
+                call.relay_off(1),
+                call.relay_off(2),
+                call.__exit__(None, None, None),
             ])
         )

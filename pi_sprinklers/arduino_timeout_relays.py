@@ -282,9 +282,13 @@ if __name__ == '__main__':
     logger.setLevel(logging.DEBUG)
 
     handlers = [
-        logging.StreamHandler(),
         logging.handlers.RotatingFileHandler(
-            '/tmp/pi_sprinklers_{0}'.format(StatefulArduinoTimeoutRelays.__name__),
+            '/tmp/pi_sprinklers_{0}.log'.format('ArduinoTimeoutRelays'),
+            maxBytes=16384,
+            backupCount=2,
+        ),
+        logging.handlers.RotatingFileHandler(
+            '/tmp/pi_sprinklers_{0}.log'.format(StatefulArduinoTimeoutRelays.__name__),
             maxBytes=16384,
             backupCount=2,
         )
