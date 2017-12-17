@@ -280,7 +280,7 @@ if __name__ == '__main__':
 
     loggers = [
         (
-            logging.getLogger(StatefulArduinoTimeoutRelays.__name__),
+            logging.getLogger('ArduinoTimeoutRelays'),
             logging.handlers.RotatingFileHandler(
                 '/tmp/pi_sprinklers_{0}.log'.format('ArduinoTimeoutRelays'),
                 maxBytes=16384,
